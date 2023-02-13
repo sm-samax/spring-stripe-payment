@@ -2,7 +2,6 @@ package com.samax.security.config;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 
 import org.springframework.context.annotation.Bean;
@@ -29,6 +28,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.samax.security.constants.SecurityConstants;
 import com.samax.security.service.UserService;
 
 import lombok.SneakyThrows;
@@ -39,7 +39,7 @@ public class SecurityConfig {
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder(10);
+		return new BCryptPasswordEncoder(SecurityConstants.BCRYPT_STRENGTH);
 	}
 	
 	@Bean 
@@ -58,8 +58,8 @@ public class SecurityConfig {
 	@Bean
 	@SneakyThrows
 	public KeyPair keypair() {
-			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-			keyPairGenerator.initialize(2048);
+			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(SecurityConstants.RSA);
+			keyPairGenerator.initialize(SecurityConstants.RSA_SIZE);
 			return keyPairGenerator.generateKeyPair();
 	}
 	
@@ -76,17 +76,16 @@ public class SecurityConfig {
 	}
 	
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	@SneakyThrows
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) {
 		return http
 				.csrf().disable()
 				.sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
-				.httpBasic()
-				.and()
 				.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
 				.authorizeRequests()
-				.antMatchers("/register", "/login")
+				.antMatchers(SecurityConstants.PUBLIC_URLS)
 				.permitAll()
 				.anyRequest()
 				.authenticated()				

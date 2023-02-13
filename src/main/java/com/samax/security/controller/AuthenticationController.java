@@ -1,15 +1,11 @@
 package com.samax.security.controller;
 
-import java.util.stream.Collectors;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,15 +54,8 @@ public class AuthenticationController {
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<String> handleIncorrectRequests(
-	  MethodArgumentNotValidException ex) {	    
-	    String errorFields = ex.getBindingResult()
-	    		.getAllErrors().stream()
-	    		.map(err -> ((FieldError) err)
-	    		.getField())
-	    		.collect(Collectors.joining(", "));
-	    String message = String.format("The next fields are incorrectly filled: %s!",
-	    		errorFields);
+	public ResponseEntity<String> handleIncorrectRequests() {
+		String message = "Some fields are incorrectly filled!";
 	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 }

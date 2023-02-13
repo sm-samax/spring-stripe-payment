@@ -46,7 +46,8 @@ public class UserService implements UserDetailsService{
 		
 		String encodedPassword = passwordEncoder.encode(registration.getPassword());
 		List<PersistedAuthority> authorities = List.of(authorityRepository.findUserAuthority());
-		User user = userRepository.save(mapper.toUser(registration, encodedPassword, authorities));
+		User user = mapper.toUser(registration, encodedPassword, authorities);
+		userRepository.save(user);
 		return tokenService.generateToken(user);
 	}
 	
