@@ -3,6 +3,8 @@ package com.samax.security.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -63,5 +65,19 @@ public class UserService implements UserDetailsService{
 			throw new IncorrectLoginException();
 		}
 		return tokenService.generateToken(userFromDatabase);
+	}
+
+	public String grantAdminAuthority() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String email = authentication.getName();
+		
+		User user = userRepository.findByEmail(email);
+		
+		PersistedAuthority adminAuthority = authorityRepository.findAdminAuthority();
+		user.getAuthorities().add(adminAuthority);
+		
+		userRepository.save(user);
+		
+		return tokenService.generateToken(user);
 	}
 }

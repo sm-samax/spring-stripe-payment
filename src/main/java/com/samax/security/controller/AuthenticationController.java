@@ -5,6 +5,8 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,9 +28,29 @@ public class AuthenticationController {
 	private UserService userService;
 	
 	@GetMapping("/home")
+	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<String> hello() {
-		String name = SecurityContextHolder.getContext().getAuthentication().getName();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String name = authentication.getName();
 		return ResponseEntity.ok(String.format("Welcome Home %s!", name));
+	}
+	
+	@GetMapping("/user")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<String> user() {
+		return ResponseEntity.ok("Resource for users");
+	}
+	
+	@GetMapping("/admin")
+	@PreAuthorize("hasAuthority('ADMIN')")
+	public ResponseEntity<String> admin() {
+		return ResponseEntity.ok("Resource for admins");
+	}
+	
+	@PostMapping("/admin")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<String> grantAdminAuthority() {
+		return ResponseEntity.ok(userService.grantAdminAuthority());
 	}
 	
 	@PostMapping("/register")
