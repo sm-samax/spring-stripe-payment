@@ -23,6 +23,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -85,6 +88,18 @@ public class SecurityConfig {
 		JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
 		authenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
 		return authenticationConverter;
+	}
+	
+	@Bean
+	public CorsFilter cors() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(SecurityConstants.ALLOWED_ORIGINS);
+		configuration.setAllowedHeaders(SecurityConstants.ALLOWED_HEADERS);
+		configuration.setAllowedMethods(SecurityConstants.ALLOWED_METHODS);
+		
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return new CorsFilter(source);
 	}
 	
 	@Bean
