@@ -13,3 +13,12 @@ spring:
     user:
       name: samu
       password: pw1234
+      
+server:
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: classpath:keystore/localkeystore.p12
+    key-store-password: pw1234
+    key-alias: localkeypair
+    
