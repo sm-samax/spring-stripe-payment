@@ -15,6 +15,7 @@ spring:
       password: pw1234
       
 server:
+  port: 8443
   ssl:
     enabled: true
     key-store-type: PKCS12
