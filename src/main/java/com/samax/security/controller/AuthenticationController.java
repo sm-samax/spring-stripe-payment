@@ -1,8 +1,12 @@
 package com.samax.security.controller;
 
+import java.util.Locale;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,15 +28,24 @@ import com.samax.security.service.UserService;
 @RestController
 public class AuthenticationController {
 	
+	private static final String INVALID_LOGIN = "invalid.login";
+	private static final String INVALID_EMAIL = "invalid.email";
+	private static final String INVALID_FIELDS = "invalid.fields";
+	private static final String GREET = "greet";
+	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private MessageSource messageSource;
 	
 	@GetMapping("/home")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<String> hello() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String name = authentication.getName();
-		return ResponseEntity.ok(String.format("Welcome Home %s!", name));
+		Locale locale = LocaleContextHolder.getLocale();
+		return ResponseEntity.ok(messageSource.getMessage(GREET, new Object[]{name}, locale));
 	}
 	
 	@GetMapping("/user")
@@ -65,19 +78,19 @@ public class AuthenticationController {
 	
 	@ExceptionHandler(EmailAlreadyInUseException.class)
 	public ResponseEntity<String> handleEmailAlreadyInUse() {
-		String message = "The given email is already being used! Please try with a different one!";
+		String message = messageSource.getMessage(INVALID_EMAIL, null, LocaleContextHolder.getLocale());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 	
 	@ExceptionHandler(IncorrectLoginException.class)
 	public ResponseEntity<String> handleIncorrectLogin() {
-		String message = "The given email or password is incorrect!";
+		String message = messageSource.getMessage(INVALID_LOGIN, null, LocaleContextHolder.getLocale());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<String> handleIncorrectRequests() {
-		String message = "Some fields are incorrectly filled!";
+		String message = messageSource.getMessage(INVALID_FIELDS, null, LocaleContextHolder.getLocale());
 	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 }
