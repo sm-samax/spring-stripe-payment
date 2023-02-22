@@ -16,5 +16,5 @@ public class SecurityConstants {
 	public static final List<String> ALLOWED_ORIGINS = List.of("http://localhost:3000");
 	public static final List<String> ALLOWED_METHODS = List.of("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH");
 	public static final List<String> ALLOWED_HEADERS = List.of("*");
-	public static final String[] PUBLIC_URLS = {"/register", "/login"};
+	public static final String[] PUBLIC_URLS = {"/register", "/login", "/verify/**"};
 }

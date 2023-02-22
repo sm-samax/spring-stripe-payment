@@ -41,6 +41,9 @@ public class UserService implements UserDetailsService{
 	@Autowired
 	private TokenService tokenService;
 	
+	@Autowired
+	private MailService mailService;
+	
 	public String registerUser(RegistrationRequest registration) {
 		if(userRepository.findByEmail(registration.getEmail()) != null) {
 			throw new EmailAlreadyInUseException();
@@ -50,6 +53,9 @@ public class UserService implements UserDetailsService{
 		List<PersistedAuthority> authorities = List.of(authorityRepository.findUserAuthority());
 		User user = mapper.toUser(registration, encodedPassword, authorities);
 		userRepository.save(user);
+		
+		mailService.sendVerificationMessage(user);
+		
 		return tokenService.generateToken(user);
 	}
 	

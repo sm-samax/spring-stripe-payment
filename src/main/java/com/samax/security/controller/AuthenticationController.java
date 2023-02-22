@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,9 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.samax.security.constants.MessageConstants;
 import com.samax.security.exception.EmailAlreadyInUseException;
 import com.samax.security.exception.IncorrectLoginException;
+import com.samax.security.exception.InvalidVerificationUrlException;
+import com.samax.security.model.User;
 import com.samax.security.model.dto.LoginRequest;
 import com.samax.security.model.dto.RegistrationRequest;
+import com.samax.security.service.MailService;
 import com.samax.security.service.UserService;
+import com.samax.security.service.VerificationURLService;
 import com.samax.security.util.MessageUtil;
 
 @RestController
@@ -32,12 +37,25 @@ public class AuthenticationController {
 	@Autowired
 	private MessageUtil messageUtil;
 	
+	@Autowired
+	private MailService mailService;
+	
+	@Autowired
+	private VerificationURLService verificationURLService;
+	
 	@GetMapping("/home")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<String> home() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String name = authentication.getName();
 		return ResponseEntity.ok(messageUtil.getMessage(MessageConstants.GREET, name));
+	}
+	
+	@GetMapping("/verify/{url}")
+	public ResponseEntity<String> verify(@PathVariable String url) {
+		User user = verificationURLService.verifyUserWithUrl(url);
+		mailService.sendVerificationSuccessMessage(user);
+		return ResponseEntity.ok("Verified!");
 	}
 	
 	@GetMapping("/user")
@@ -84,5 +102,11 @@ public class AuthenticationController {
 	public ResponseEntity<String> handleIncorrectRequests() {
 		String message = messageUtil.getMessage(MessageConstants.INVALID_FIELDS);
 	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+	}
+	
+	@ExceptionHandler(InvalidVerificationUrlException.class)
+	public ResponseEntity<String> handleInvalidVerificationUrl() {
+		String message = messageUtil.getMessage(MessageConstants.INVALID_VERIFICATION_URL);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 }

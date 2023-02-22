@@ -30,6 +30,8 @@ public class User {
 	@Column(nullable = false)
 	private String password;
 	
+	private boolean verified;
+	
 	@ManyToMany
 	private List<PersistedAuthority> authorities;
 }
