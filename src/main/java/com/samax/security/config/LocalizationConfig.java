@@ -35,6 +35,8 @@ public class LocalizationConfig {
 		CookieLocaleResolver localeResolver = new CookieLocaleResolver();
 		localeResolver.setCookieName(LANGUAGE);
 		localeResolver.setDefaultLocale(Locale.ENGLISH);
+		localeResolver.setCookieHttpOnly(true);
+		localeResolver.setCookieSecure(true);
 		return localeResolver;
 	}
 	
