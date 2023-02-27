@@ -20,6 +20,7 @@ import com.samax.security.constants.MessageConstants;
 import com.samax.security.exception.EmailAlreadyInUseException;
 import com.samax.security.exception.IncorrectLoginException;
 import com.samax.security.exception.InvalidVerificationUrlException;
+import com.samax.security.exception.UserNotVerifiedException;
 import com.samax.security.model.User;
 import com.samax.security.model.dto.LoginRequest;
 import com.samax.security.model.dto.RegistrationRequest;
@@ -77,36 +78,33 @@ public class AuthenticationController {
 	}
 	
 	@PostMapping("/register")
-	public ResponseEntity<String> registration(@RequestBody @Valid RegistrationRequest registration) {
-		return ResponseEntity.ok(userService.registerUser(registration));
+	public void registration(@RequestBody @Valid RegistrationRequest registration) {
+		userService.registerUser(registration);
 	}
 		
-	@PostMapping("/login")
+	@GetMapping("/login")
 	public ResponseEntity<String> login(@RequestBody @Valid LoginRequest loginRequest) {
 		return ResponseEntity.ok(userService.login(loginRequest));
 	}
 	
-	@ExceptionHandler(EmailAlreadyInUseException.class)
-	public ResponseEntity<String> handleEmailAlreadyInUse() {
-		String message = messageUtil.getMessage(MessageConstants.INVALID_EMAIL);
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-	}
-	
-	@ExceptionHandler(IncorrectLoginException.class)
-	public ResponseEntity<String> handleIncorrectLogin() {
-		String message = messageUtil.getMessage(MessageConstants.INVALID_LOGIN);
+	@ExceptionHandler({
+		EmailAlreadyInUseException.class,
+		IncorrectLoginException.class,
+		InvalidVerificationUrlException.class,
+		UserNotVerifiedException.class
+	})
+	public ResponseEntity<String> handleException(Exception ex) {
+		String message = messageUtil.getMessage(ex.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<String> handleIncorrectRequests() {
-		String message = messageUtil.getMessage(MessageConstants.INVALID_FIELDS);
+	public ResponseEntity<String> handleIncorrectRequests(MethodArgumentNotValidException ex) {
+		String code = ex.getBindingResult()
+				.getFieldErrors()
+				.get(0)
+				.getDefaultMessage();
+		String message = messageUtil.getMessage(code);
 	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-	}
-	
-	@ExceptionHandler(InvalidVerificationUrlException.class)
-	public ResponseEntity<String> handleInvalidVerificationUrl() {
-		String message = messageUtil.getMessage(MessageConstants.INVALID_VERIFICATION_URL);
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 }

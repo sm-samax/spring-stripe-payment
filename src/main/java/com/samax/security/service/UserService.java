@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.samax.security.exception.EmailAlreadyInUseException;
 import com.samax.security.exception.IncorrectLoginException;
+import com.samax.security.exception.UserNotVerifiedException;
 import com.samax.security.model.PersistedAuthority;
 import com.samax.security.model.User;
 import com.samax.security.model.dto.LoginRequest;
@@ -44,7 +45,7 @@ public class UserService implements UserDetailsService{
 	@Autowired
 	private MailService mailService;
 	
-	public String registerUser(RegistrationRequest registration) {
+	public void registerUser(RegistrationRequest registration) {
 		if(userRepository.findByEmail(registration.getEmail()) != null) {
 			throw new EmailAlreadyInUseException();
 		}
@@ -55,8 +56,6 @@ public class UserService implements UserDetailsService{
 		userRepository.save(user);
 		
 		mailService.sendVerificationMessage(user);
-		
-		return tokenService.generateToken(user);
 	}
 	
 	@Override
@@ -70,6 +69,11 @@ public class UserService implements UserDetailsService{
 		if(userFromDatabase == null || !passwordEncoder.matches(login.getPassword(), userFromDatabase.getPassword())) {
 			throw new IncorrectLoginException();
 		}
+		
+		if(!userFromDatabase.isVerified()) {
+			throw new UserNotVerifiedException();
+		}
+		
 		return tokenService.generateToken(userFromDatabase);
 	}
 

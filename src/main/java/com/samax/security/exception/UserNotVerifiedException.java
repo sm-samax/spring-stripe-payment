@@ -2,10 +2,10 @@ package com.samax.security.exception;
 
 import com.samax.security.constants.MessageConstants;
 
-public class IncorrectLoginException extends RuntimeException {
+public class UserNotVerifiedException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 	
-	public IncorrectLoginException() {
-		super(MessageConstants.INVALID_LOGIN);
+	public UserNotVerifiedException() {
+		super(MessageConstants.USER_NOT_VERIFIED);
 	}
 }

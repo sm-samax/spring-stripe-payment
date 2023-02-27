@@ -1,12 +1,11 @@
 package com.samax.security.exception;
 
-import lombok.RequiredArgsConstructor;
+import com.samax.security.constants.MessageConstants;
 
-@RequiredArgsConstructor
 public class EmailAlreadyInUseException extends RuntimeException{
 	private static final long serialVersionUID = 1L;
 	
-	public EmailAlreadyInUseException(String message) {
-		super(message);
+	public EmailAlreadyInUseException() {
+		super(MessageConstants.INVALID_EMAIL);
 	}
 }

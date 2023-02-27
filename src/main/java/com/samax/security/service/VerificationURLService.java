@@ -2,6 +2,7 @@ package com.samax.security.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Random;
 
 import javax.transaction.Transactional;
 
@@ -17,11 +18,14 @@ import com.samax.security.repository.VerificationURLRepository;
 @Transactional
 public class VerificationURLService {
 	
+	private static final int URL_LENGTH = 24;
+	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
 	@Autowired
 	private VerificationURLRepository verificationURLRepository;
 	
 	public String generateVerificationUrl(User user) {
-		String url = "randomstring";
+		String url = this.generateRandomUrl();
 		
 		VerificationURL verificationURL = new VerificationURL(null, url, Instant.now(), user);
 		
@@ -45,5 +49,14 @@ public class VerificationURLService {
 
 	private boolean expired(VerificationURL verificationURL) {
 		return Instant.now().minus(1L, ChronoUnit.DAYS).isAfter(verificationURL.getCreationTime());
+	}
+	
+	private String generateRandomUrl() {
+		StringBuilder stringBuilder = new StringBuilder(URL_LENGTH);
+		Random random = new Random();
+		for(int i = 0; i < URL_LENGTH; i++) {
+			stringBuilder.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
+		}
+		return stringBuilder.toString();
 	}
 }
