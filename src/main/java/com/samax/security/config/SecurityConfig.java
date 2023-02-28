@@ -2,6 +2,7 @@ package com.samax.security.config;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
 import java.security.interfaces.RSAPublicKey;
 
 import org.springframework.context.annotation.Bean;
@@ -118,5 +119,10 @@ public class SecurityConfig {
 				.authenticated()				
 				.and()
 				.build();
+	}
+	
+	@Bean
+	public SecureRandom random() {
+		return new SecureRandom();
 	}
 }

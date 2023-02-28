@@ -1,14 +1,16 @@
 package com.samax.security.service;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Random;
 
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.samax.security.annotations.ExecuteDaily;
+import com.samax.security.constants.VerificationUrlConstants;
 import com.samax.security.exception.InvalidVerificationUrlException;
 import com.samax.security.model.User;
 import com.samax.security.model.VerificationURL;
@@ -18,8 +20,8 @@ import com.samax.security.repository.VerificationURLRepository;
 @Transactional
 public class VerificationURLService {
 	
-	private static final int URL_LENGTH = 24;
-	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	@Autowired
+	private SecureRandom random;
 	
 	@Autowired
 	private VerificationURLRepository verificationURLRepository;
@@ -27,7 +29,11 @@ public class VerificationURLService {
 	public String generateVerificationUrl(User user) {
 		String url = this.generateRandomUrl();
 		
-		VerificationURL verificationURL = new VerificationURL(null, url, Instant.now(), user);
+		VerificationURL verificationURL = VerificationURL.builder()
+				.url(url)
+				.creationTime(Instant.now())
+				.user(user)
+				.build();
 		
 		verificationURLRepository.save(verificationURL);
 		
@@ -46,17 +52,27 @@ public class VerificationURLService {
 		
 		return user;
 	}
+	
+	@ExecuteDaily
+	public void deleteExpiredUrls() {
+		verificationURLRepository.findAll().stream()
+			.filter(this::expired)
+			.forEach(verificationURLRepository::delete);
+	}
 
 	private boolean expired(VerificationURL verificationURL) {
 		return Instant.now().minus(1L, ChronoUnit.DAYS).isAfter(verificationURL.getCreationTime());
 	}
 	
 	private String generateRandomUrl() {
-		StringBuilder stringBuilder = new StringBuilder(URL_LENGTH);
-		Random random = new Random();
-		for(int i = 0; i < URL_LENGTH; i++) {
-			stringBuilder.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
+		StringBuilder stringBuilder = new StringBuilder(VerificationUrlConstants.URL_LENGTH);
+		for(int i = 0; i < VerificationUrlConstants.URL_LENGTH; i++) {
+			stringBuilder.append(VerificationUrlConstants.URL_ALPHABET
+					.charAt(random.nextInt(VerificationUrlConstants.URL_ALPHABET.length())));
 		}
-		return stringBuilder.toString();
+		
+		String url = stringBuilder.toString();
+		
+		return verificationURLRepository.findByUrl(url) == null ? url : generateRandomUrl();
 	}
 }
