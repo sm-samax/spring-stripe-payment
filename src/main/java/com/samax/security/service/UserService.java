@@ -18,6 +18,8 @@ import com.samax.security.exception.UserNotVerifiedException;
 import com.samax.security.model.PersistedAuthority;
 import com.samax.security.model.User;
 import com.samax.security.model.dto.LoginRequest;
+import com.samax.security.model.dto.PaymentRequest;
+import com.samax.security.model.dto.PaymentResponse;
 import com.samax.security.model.dto.RegistrationRequest;
 import com.samax.security.model.mapper.UserMapper;
 import com.samax.security.repository.AuthorityRepository;
@@ -78,16 +80,31 @@ public class UserService implements UserDetailsService{
 	}
 
 	public String grantAdminAuthority() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		String email = authentication.getName();
-		
-		User user = userRepository.findByEmail(email);
+		User user = currentUser();
 		
 		PersistedAuthority adminAuthority = authorityRepository.findAdminAuthority();
 		user.getAuthorities().add(adminAuthority);
-		
 		userRepository.save(user);
 		
 		return tokenService.generateToken(user);
+	}
+	
+	public PaymentResponse grantPremiumUserAuthority(PaymentRequest payment) {
+		User user = currentUser();
+		
+		PersistedAuthority premiunUserAuthority = authorityRepository.findPremiumUserAuthority();
+		user.getAuthorities().add(premiunUserAuthority);
+		userRepository.save(user);
+		
+		return PaymentResponse.builder()
+				.message("You are now premium user!")
+				.accessToken(tokenService.generateToken(user))
+				.build();
+	}
+	
+	private User currentUser() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String email = authentication.getName();
+		return userRepository.findByEmail(email);
 	}
 }

@@ -15,11 +15,13 @@ import javax.persistence.Table;
 import org.springframework.security.core.GrantedAuthority;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "AUTHORITY")
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

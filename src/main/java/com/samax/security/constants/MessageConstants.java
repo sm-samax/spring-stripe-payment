@@ -1,6 +1,7 @@
 package com.samax.security.constants;
 
 public class MessageConstants {
+	public static final String AMOUNT_UNDER_MINIMUM = "amount.under.minimum";
 	public static final String BLANK_FIELD = "blank.field";
 	public static final String INVALID_LOGIN = "invalid.login";
 	public static final String INVALID_EMAIL = "invalid.email";
