@@ -23,6 +23,8 @@ import com.samax.security.exception.InvalidVerificationUrlException;
 import com.samax.security.exception.UserNotVerifiedException;
 import com.samax.security.model.User;
 import com.samax.security.model.dto.LoginRequest;
+import com.samax.security.model.dto.PaymentRequest;
+import com.samax.security.model.dto.PaymentResponse;
 import com.samax.security.model.dto.RegistrationRequest;
 import com.samax.security.service.MailService;
 import com.samax.security.service.UserService;
@@ -75,6 +77,18 @@ public class AuthenticationController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<String> grantAdminAuthority() {
 		return ResponseEntity.ok(userService.grantAdminAuthority());
+	}
+	
+	@GetMapping("/premium")
+	@PreAuthorize("hasAuthority('PREMIUM_USER')")
+	public ResponseEntity<String> premium() {
+		return ResponseEntity.ok("Resource for premium users");
+	}
+	
+	@PostMapping("/premium")
+	@PreAuthorize("isAuthenticated() and !hasAuthority('PREMIUM_USER')")
+	public ResponseEntity<PaymentResponse> grantPremiumUserAuthority(@RequestBody @Valid PaymentRequest payment) {
+		return ResponseEntity.ok(userService.grantPremiumUserAuthority(payment));
 	}
 	
 	@PostMapping("/register")

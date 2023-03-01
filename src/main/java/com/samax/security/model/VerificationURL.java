@@ -34,6 +34,6 @@ public class VerificationURL {
 	@Column(nullable = false)
 	private Instant creationTime;
 	
-	@OneToOne(optional = false, cascade = CascadeType.ALL)
+	@OneToOne(cascade = CascadeType.ALL)
 	private User user;
 }

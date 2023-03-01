@@ -50,6 +50,8 @@ public class VerificationURLService {
 		User user = verificationURL.getUser();
 		user.setVerified(true);
 		
+		deleteConsumedUrl(verificationURL);
+		
 		return user;
 	}
 	
@@ -74,5 +76,10 @@ public class VerificationURLService {
 		String url = stringBuilder.toString();
 		
 		return verificationURLRepository.findByUrl(url) == null ? url : generateRandomUrl();
+	}
+	
+	private void deleteConsumedUrl(VerificationURL verificationURL) {
+		verificationURL.setUser(null);
+		verificationURLRepository.delete(verificationURL);
 	}
 }
