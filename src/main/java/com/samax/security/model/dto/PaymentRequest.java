@@ -20,7 +20,7 @@ public class PaymentRequest {
 	@Min(value =  0, message = MessageConstants.AMOUNT_UNDER_MINIMUM)
 	private BigDecimal amount;
 	@NotBlank(message = MessageConstants.BLANK_FIELD)
-	private String email;
+	private String stripeEmail;
 	@NotBlank(message = MessageConstants.BLANK_FIELD)
-	private String token;
+	private String stripeToken;
 }

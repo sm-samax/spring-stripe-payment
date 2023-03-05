@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +22,6 @@ import com.samax.security.exception.InvalidVerificationUrlException;
 import com.samax.security.exception.UserNotVerifiedException;
 import com.samax.security.model.User;
 import com.samax.security.model.dto.LoginRequest;
-import com.samax.security.model.dto.PaymentRequest;
-import com.samax.security.model.dto.PaymentResponse;
 import com.samax.security.model.dto.RegistrationRequest;
 import com.samax.security.service.MailService;
 import com.samax.security.service.UserService;
@@ -85,12 +82,6 @@ public class AuthenticationController {
 		return ResponseEntity.ok("Resource for premium users");
 	}
 	
-	@PostMapping("/premium")
-	@PreAuthorize("isAuthenticated() and !hasAuthority('PREMIUM_USER')")
-	public ResponseEntity<PaymentResponse> grantPremiumUserAuthority(@RequestBody @Valid PaymentRequest payment) {
-		return ResponseEntity.ok(userService.grantPremiumUserAuthority(payment));
-	}
-	
 	@PostMapping("/register")
 	public void registration(@RequestBody @Valid RegistrationRequest registration) {
 		userService.registerUser(registration);
@@ -110,15 +101,5 @@ public class AuthenticationController {
 	public ResponseEntity<String> handleException(Exception ex) {
 		String message = messageUtil.getMessage(ex.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-	}
-	
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<String> handleIncorrectRequests(MethodArgumentNotValidException ex) {
-		String code = ex.getBindingResult()
-				.getFieldErrors()
-				.get(0)
-				.getDefaultMessage();
-		String message = messageUtil.getMessage(code);
-	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 }
