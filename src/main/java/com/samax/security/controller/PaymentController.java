@@ -17,6 +17,7 @@ import com.samax.security.model.dto.PaymentRequest;
 import com.samax.security.model.dto.PaymentResponse;
 import com.samax.security.service.PaymentService;
 import com.samax.security.util.MessageUtil;
+import com.stripe.exception.StripeException;
 
 @RestController
 public class PaymentController {
@@ -39,7 +40,7 @@ public class PaymentController {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
 	}
 	
-	@ExceptionHandler(PaymentException.class)
+	@ExceptionHandler({PaymentException.class, StripeException.class})
 	public ResponseEntity<String> handleIncorrectPayment(PaymentException ex) {
 		String message = messageUtil.getMessage(ex.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);

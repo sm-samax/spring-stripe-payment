@@ -3,16 +3,16 @@ package com.samax.security.enums;
 import lombok.Getter;
 
 @Getter
-public enum Currency {
-	USD, CAD, EUR, RSD, HUF(false), JPY(false);
+public enum SupportedCurrency {
+	usd, cad, eur, rsd, huf(false), jpy(false);
 	
 	private boolean decimal;
 	
-	private Currency() {
+	private SupportedCurrency() {
 		this.decimal = true;
 	}
 	
-	private Currency(boolean decimal) {
+	private SupportedCurrency(boolean decimal) {
 		this.decimal = decimal;
 	}
 }

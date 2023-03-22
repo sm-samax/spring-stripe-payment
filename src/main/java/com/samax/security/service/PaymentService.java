@@ -1,42 +1,57 @@
 package com.samax.security.service;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.samax.security.constants.PaymentConstants;
 import com.samax.security.converter.CurrencyConverter;
-import com.samax.security.enums.Currency;
-import com.samax.security.exception.PaymentException;
 import com.samax.security.model.dto.PaymentRequest;
 import com.samax.security.model.dto.PaymentResponse;
+import com.stripe.Stripe;
+import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
+
+import io.github.cdimascio.dotenv.Dotenv;
+import lombok.SneakyThrows;
 
 @Service
 @Transactional
 public class PaymentService {
 
 	@Autowired
+	private Dotenv dotenv;
+	
+	@Autowired
 	private UserService userService;
 	
 	@Autowired
 	private CurrencyConverter currencyConverter;
 	
-	public PaymentResponse purchasePremiumAuthority(PaymentRequest payment) {
-		if(!validatePaymentToPremium(payment)) {
-			throw new PaymentException();
-		}
+	@PostConstruct
+	private void init() {
+		Stripe.apiKey = dotenv.get("STRIPE_SECRET_KEY");
+	}
+	
+	@SneakyThrows
+	public void chargePremiumAuthority(PaymentRequest payment) {
+		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+				.setCurrency("usd")
+				.setAmount(1000L)
+				.setPaymentMethod(payment.getPaymentMethodId())
+				.build();
 		
+		PaymentIntent.create(params).confirm();
+	}
+	
+	public PaymentResponse purchasePremiumAuthority(PaymentRequest payment) {		
+		chargePremiumAuthority(payment);
 		String token = userService.grantPremiumUserAuthority();
 		
 		return PaymentResponse.builder()
 				.message("Payment was successfull!")
 				.accessToken(token)
 				.build();
-	}
-	
-	private boolean validatePaymentToPremium(PaymentRequest payment) {
-		Currency currency = currencyConverter.convert(payment.getCurrency());
-		return PaymentConstants.DEFAULT_CURRENCY.equals(currency);
 	}
 }
