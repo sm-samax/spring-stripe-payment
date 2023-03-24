@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.samax.security.converter.CurrencyConverter;
+import com.samax.security.model.Product;
 import com.samax.security.model.dto.PaymentRequest;
 import com.samax.security.model.dto.PaymentResponse;
 import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 
@@ -34,8 +36,8 @@ public class PaymentService {
 		Stripe.apiKey = dotenv.get("STRIPE_SECRET_KEY");
 	}
 	
-	@SneakyThrows
-	public void chargePremiumAuthority(PaymentRequest payment) {
+	@SneakyThrows(StripeException.class)
+	public void charge(Product product, PaymentRequest payment) {
 		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
 				.setCurrency("usd")
 				.setAmount(1000L)
@@ -45,8 +47,8 @@ public class PaymentService {
 		PaymentIntent.create(params).confirm();
 	}
 	
-	public PaymentResponse purchasePremiumAuthority(PaymentRequest payment) {		
-		chargePremiumAuthority(payment);
+	public PaymentResponse purchasePremiumAuthority(Product product, PaymentRequest payment) {
+		this.charge(product, payment);
 		String token = userService.grantPremiumUserAuthority();
 		
 		return PaymentResponse.builder()

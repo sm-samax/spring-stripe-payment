@@ -15,15 +15,15 @@ import com.samax.security.constants.MessageConstants;
 import com.samax.security.exception.PaymentException;
 import com.samax.security.model.dto.PaymentRequest;
 import com.samax.security.model.dto.PaymentResponse;
-import com.samax.security.service.PaymentService;
+import com.samax.security.service.ProductService;
 import com.samax.security.util.MessageUtil;
 import com.stripe.exception.StripeException;
 
 @RestController
-public class PaymentController {
+public class ProductController {
 
 	@Autowired
-	private PaymentService paymentService;
+	private ProductService productService;
 	
 	@Autowired
 	private MessageUtil messageUtil;
@@ -31,7 +31,7 @@ public class PaymentController {
 	@PostMapping("/premium")
 	@PreAuthorize("!hasAuthority('PREMIUM_USER')")
 	public ResponseEntity<PaymentResponse> purchasePremiumUserAuthority(@RequestBody @Valid PaymentRequest payment) {
-		return ResponseEntity.ok(paymentService.purchasePremiumAuthority(payment));
+		return ResponseEntity.ok(productService.purchasePremiumAuthority(payment));
 	}
 	
 	@ExceptionHandler(IllegalArgumentException.class)
