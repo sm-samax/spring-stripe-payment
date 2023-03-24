@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum SupportedCurrency {
-	usd, cad, eur, rsd, huf(false), jpy(false);
+	usd, cad, eur, rsd, huf, jpy(false);
 	
 	private boolean decimal;
 	

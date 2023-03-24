@@ -6,10 +6,13 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.samax.security.constants.PaymentConstants;
 import com.samax.security.converter.CurrencyConverter;
+import com.samax.security.enums.SupportedCurrency;
 import com.samax.security.model.Product;
 import com.samax.security.model.dto.PaymentRequest;
 import com.samax.security.model.dto.PaymentResponse;
+import com.samax.security.util.MessageUtil;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -26,34 +29,46 @@ public class PaymentService {
 	private Dotenv dotenv;
 	
 	@Autowired
-	private UserService userService;
+	private CurrencyConverter currencyConverter;
 	
 	@Autowired
-	private CurrencyConverter currencyConverter;
+	private ExchangeService exchangeService;
+	
+	@Autowired
+	private MessageUtil messageUtil;
 	
 	@PostConstruct
 	private void init() {
 		Stripe.apiKey = dotenv.get("STRIPE_SECRET_KEY");
 	}
 	
+	public PaymentResponse purchase(Product product, PaymentRequest payment) {
+		this.confirmPurchase(product, payment);
+		return PaymentResponse.builder()
+				.message(messageUtil.getMessage(PaymentConstants.PAYMENT_SUCCESS))
+				.build();
+	}
+	
+	private void confirmPurchase(Product product, PaymentRequest payment) {
+		SupportedCurrency supportedCurrency = currencyConverter.convert(payment.getCurrency());
+		String currency = supportedCurrency.toString();
+		long amount = exchangeService.getProductPriceIn(product, supportedCurrency);
+		String productName = messageUtil.getMessage(product.getProductCode());
+		String description = String.format(
+				messageUtil.getMessage(PaymentConstants.PAYMENT_DESCRIPTION, productName));
+		
+		this.charge(description, currency, amount, payment.getPaymentMethodId());
+	}
+	
 	@SneakyThrows(StripeException.class)
-	public void charge(Product product, PaymentRequest payment) {
+	private void charge(String description, String currency, long amount, String paymentMethodId) {
 		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-				.setCurrency("usd")
-				.setAmount(1000L)
-				.setPaymentMethod(payment.getPaymentMethodId())
+				.setDescription(description)
+				.setCurrency(currency)
+				.setAmount(amount)
+				.setPaymentMethod(paymentMethodId)
 				.build();
 		
 		PaymentIntent.create(params).confirm();
-	}
-	
-	public PaymentResponse purchasePremiumAuthority(Product product, PaymentRequest payment) {
-		this.charge(product, payment);
-		String token = userService.grantPremiumUserAuthority();
-		
-		return PaymentResponse.builder()
-				.message("Payment was successfull!")
-				.accessToken(token)
-				.build();
 	}
 }
