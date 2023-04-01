@@ -1,5 +1,8 @@
 package com.samax.security.service;
 
+import java.time.Instant;
+import java.util.Collections;
+
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
@@ -10,8 +13,10 @@ import com.samax.security.constants.PaymentConstants;
 import com.samax.security.converter.CurrencyConverter;
 import com.samax.security.enums.SupportedCurrency;
 import com.samax.security.model.Product;
+import com.samax.security.model.Purchase;
 import com.samax.security.model.dto.PaymentRequest;
 import com.samax.security.model.dto.PaymentResponse;
+import com.samax.security.repository.PurchaseRepository;
 import com.samax.security.util.MessageUtil;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -37,6 +42,12 @@ public class PaymentService {
 	@Autowired
 	private MessageUtil messageUtil;
 	
+	@Autowired
+	private UserService userService;
+	
+	@Autowired
+	private PurchaseRepository purchaseRepository;
+	
 	@PostConstruct
 	private void init() {
 		Stripe.apiKey = dotenv.get("STRIPE_SECRET_KEY");
@@ -44,20 +55,22 @@ public class PaymentService {
 	
 	public PaymentResponse purchase(Product product, PaymentRequest payment) {
 		this.confirmPurchase(product, payment);
+		
 		return PaymentResponse.builder()
 				.message(messageUtil.getMessage(PaymentConstants.PAYMENT_SUCCESS))
 				.build();
 	}
 	
 	private void confirmPurchase(Product product, PaymentRequest payment) {
-		SupportedCurrency supportedCurrency = currencyConverter.convert(payment.getCurrency());
-		String currency = supportedCurrency.toString();
-		long amount = exchangeService.getProductPriceIn(product, supportedCurrency);
+		SupportedCurrency currency = currencyConverter.convert(payment.getCurrency());
+		long amount = exchangeService.getProductPriceIn(product, currency);
 		String productName = messageUtil.getMessage(product.getProductCode());
 		String description = String.format(
 				messageUtil.getMessage(PaymentConstants.PAYMENT_DESCRIPTION, productName));
 		
-		this.charge(description, currency, amount, payment.getPaymentMethodId());
+		this.charge(description, currency.toString(), amount, payment.getPaymentMethodId());
+		
+		this.savePurchase(product, currency);
 	}
 	
 	@SneakyThrows(StripeException.class)
@@ -70,5 +83,16 @@ public class PaymentService {
 				.build();
 		
 		PaymentIntent.create(params).confirm();
+	}
+	
+	private void savePurchase(Product product, SupportedCurrency currency) {
+		Purchase purchase = Purchase.builder()
+			.products(Collections.singletonList(product))
+			.currency(currency)
+			.date(Instant.now())
+			.user(userService.currentUser())
+			.build();
+		
+		purchaseRepository.save(purchase);
 	}
 }

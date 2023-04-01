@@ -97,7 +97,7 @@ public class UserService implements UserDetailsService{
 		return tokenService.generateToken(user);
 	}
 	
-	private User currentUser() {
+	public User currentUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String email = authentication.getName();
 		return userRepository.findByEmail(email);
