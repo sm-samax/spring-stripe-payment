@@ -13,6 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
 	@Id
 	@SequenceGenerator(name = "user_seq_gen", initialValue = 1)
